@@ -1,44 +1,69 @@
-open Js
+
+let version = "1.0"
 
 class type installEvent = object
   inherit Dom_html.event 
 
   (* Wait install until successful callback. *)
-  method waitUntil: 'a -> unit meth
+  method waitUntil: 'a -> unit Js.meth
 end
 
 class type _request = object
-  method url: js_string t readonly_prop
-  method _Method: js_string t readonly_prop
+  method url: Js.js_string Js.t Js.readonly_prop
+  method _Method: Js.js_string Js.t Js.readonly_prop
+end
+
+class type _response = object
 end
 
 class type fetchEvent = object
   inherit Dom_html.event
 
-  method respondWith: 'a -> unit meth
-  method default: unit -> 'a meth
-  method request: _request t readonly_prop
+  method respondWith: 'a Js.t -> unit Js.meth
+  method default: unit -> 'a Js.meth
+  method request: _request Js.t Js.readonly_prop
 end
 
 (* Define events for service worker *)
 module Service_worker_events = struct
-  let install : installEvent t Dom_html.Event.typ = Dom_html.Event.make "install"
-  let fetch : fetchEvent t Dom_html.Event.typ = Dom_html.Event.make "fetch"
+  let install : installEvent Js.t Dom_html.Event.typ = Dom_html.Event.make "install"
+  let fetch : fetchEvent Js.t Dom_html.Event.typ = Dom_html.Event.make "fetch"
 end
 
 module Service_worker : sig
-  val install: ((installEvent as 'b) t -> bool t) -> Dom_html.event_listener_id
-  val fetch: ((fetchEvent as 'b) t -> bool t) -> Dom_html.event_listener_id
+  val install: ((installEvent as 'b) Js.t -> bool Js.t) -> Dom_html.event_listener_id
+  val fetch: ((fetchEvent as 'b) Js.t -> bool Js.t) -> Dom_html.event_listener_id
 end = struct
   module Event = Service_worker_events
 
   let addEvent e h =
     let h = Dom_html.handler h in
+    let open Js in
     Dom_html.addEventListener Dom_html.window e h _false
 
   let install handler = addEvent Event.install handler
   let fetch handler = addEvent Event.fetch handler
 end
 
-let () =
-  Service_worker.install (fun _ -> _false) |> ignore
+let _Response : (Js.js_string Js.t -> _response Js.t) Js.constr = Js.Unsafe.global##_Response
+
+let () = ignore begin
+  let console = Console.console in
+  Service_worker.install (fun _ ->
+    let open Js in
+    console##log (string ("installed " ^ version)); _false) |> ignore;
+
+  Service_worker.fetch (fun e ->
+    let url = Js.to_string e##request##url |> Url.url_of_string in
+    match url with
+    | None -> assert false
+    | Some url -> begin match url with
+      | Url.Http url | Url.Https url ->
+         let response = "You access to " ^ url.Url.hu_path_string in
+         let res = jsnew (_Response) ((Js.string response)) in
+         e##respondWith (res) |> ignore;
+         Js._false
+      | _ -> assert false
+    end
+  ) |> ignore;
+end

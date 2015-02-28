@@ -7,7 +7,7 @@ open MyOCaml
 ########################################################################
 # Phony targets are scoped, so you probably want to declare them first.
 #
-.PHONY: test clean doc all
+.PHONY: test clean doc all copy
 
 ########################################################################
 # Subdirectories.
@@ -83,6 +83,10 @@ OCAMLOPTFLAGS +=
 # OCAML_LIB_FLAGS +=
 #
 LIB = sw_of_ocaml
+
+copy: all
+	cp src/*.js misc
+	cp src/*.map misc
 
 .DEFAULT: all
 

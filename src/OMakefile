@@ -63,16 +63,23 @@ OCAMLOPTFLAGS +=
 # OCAML_OTHER_LIBS += nums
 # OCAML_LIB_FLAGS +=
 #
-LIB = sw_of_ocaml
+SW = service_worker
+REGISTER = service_register
 
-MyOCamlLibrary($(LIB), $(removesuffix $(ls *.ml)))
+OCamlProgramOnlyByte($(SW), service_worker promise console)
+OCamlProgramOnlyByte($(REGISTER), service_register promise console)
 
-$(LIB).js: $(LIB).cmo
-	js_of_ocaml $(LIB).cmo
+JS_OF_OCAML_FLAGS = --source-map --pretty 
 
-all: $(LIB).js
+$(SW).js: $(SW).run
+	js_of_ocaml $(JS_OF_OCAML_FLAGS) $+
+
+$(REGISTER).js: $(REGISTER).run
+	js_of_ocaml $(JS_OF_OCAML_FLAGS) $+
+
+all: $(SW).js $(REGISTER).js
 
 .DEFAULT: all
 
 install:
-	CreateInstalled($(LIB), $(glob i, src/*ml) $(glob i, src/*c))
+	CreateInstalled($(LIB), $(glob i, src/*ml))
