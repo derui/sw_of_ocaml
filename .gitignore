@@ -9,3 +9,8 @@
 *.a
 *.cmt
 *.cmti
+
+*.js
+*.map
+*.run
+*.opt

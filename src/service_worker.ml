@@ -19,8 +19,9 @@ end
 class type fetchEvent = object
   inherit Dom_html.event
 
-  method respondWith: 'a Js.t -> unit Js.meth
-  method default: unit -> 'a Js.meth
+  method respondWith_promise: Promise.promise Js.t -> unit Js.meth
+  method respondWith_response: _response Js.t -> unit Js.meth
+  method default: _request Js.t -> 'a Js.meth
   method request: _request Js.t Js.readonly_prop
 end
 
@@ -58,12 +59,12 @@ let () = ignore begin
     match url with
     | None -> assert false
     | Some url -> begin match url with
-      | Url.Http url | Url.Https url ->
+      | Url.Http url | Url.Https url when url.Url.hu_path_string <> "" ->
          let response = "You access to " ^ url.Url.hu_path_string in
          let res = jsnew (_Response) ((Js.string response)) in
-         e##respondWith (res) |> ignore;
-         Js._false
-      | _ -> assert false
-    end
+         e##respondWith_response (res) |> ignore;
+      | _ -> e##default (e##request)
+    end;
+      Js._false
   ) |> ignore;
 end
