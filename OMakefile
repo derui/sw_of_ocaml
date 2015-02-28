@@ -1,0 +1,90 @@
+########################################################################
+# The standard OMakefile.
+# You will usually need to modify this file for your project.
+open MyFunction
+open MyOCaml
+
+########################################################################
+# Phony targets are scoped, so you probably want to declare them first.
+#
+.PHONY: test clean doc all
+
+########################################################################
+# Subdirectories.
+# You may want to include some subdirectories in this project.
+# If so, define the subdirectory targets and uncomment this section.
+#
+
+.SUBDIRS: src
+
+########################################################################
+# OCaml configuration.
+# Delete this section if you are not building OCaml files.
+#
+
+# mark file confined directory path.
+INSTALLED = $(BIG_ROOT)/installed
+
+################################################
+# Configuration.  You may want to modify any of these configuration
+# variables.
+#
+
+#
+# This project requires ocamlfind (default - false).
+#
+USE_OCAMLFIND = true
+#
+OCAMLPACKS[] =
+#
+if $(not $(OCAMLFIND_EXISTS))
+    eprintln(This project requires ocamlfind, but is was not found.)
+    eprintln(You need to install ocamlfind and run "omake --configure".)
+    exit 1
+
+#
+# Include path
+#
+OCAMLINCLUDES += src
+
+#
+# Compile native or byte code?
+#
+# The default values are defined as follows:
+#
+NATIVE_ENABLED = $(OCAMLOPT_EXISTS)
+BYTE_ENABLED = $(not $(OCAMLOPT_EXISTS))
+
+#
+# Various options
+#
+OCAMLFLAGS    += 
+OCAMLCFLAGS   +=
+OCAMLOPTFLAGS +=
+# OCAML_LINK_FLAGS +=
+# OCAML_BYTE_LINK_FLAGS +=
+# OCAML_NATIVE_LINK_FLAGS +=
+
+################################################
+# Generated files
+#
+# Workaround for the fact that ocamldep does not pay attention to .mll
+# and .mly files.
+#
+# OCamlGeneratedFiles(parser.ml lexer.ml)
+
+################################################
+# Build an OCaml program
+#
+
+# OCAML_LIBS +=
+# OCAML_CLIBS +=
+# OCAML_OTHER_LIBS += nums
+# OCAML_LIB_FLAGS +=
+#
+LIB = sw_of_ocaml
+
+.DEFAULT: all
+
+install:
+	CreateInstalled($(LIB), $(glob i, src/*ml) $(glob i, src/*c))
